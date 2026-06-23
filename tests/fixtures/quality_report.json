@@ -1,0 +1,26 @@
+{
+  "artifacts": {
+    "readme": {
+      "overall_score": 8.2,
+      "scores": {
+        "criterion_alignment": 9,
+        "specificity": 7,
+        "readability": 9,
+        "tone": 8
+      },
+      "top_improvement": "Add a concrete time-saved metric in the intro paragraph",
+      "flag_for_auto_revision": false
+    },
+    "devpost_copy": {
+      "overall_score": 5.8,
+      "scores": {
+        "criterion_alignment": 5,
+        "specificity": 6,
+        "readability": 7,
+        "tone": 5
+      },
+      "top_improvement": "Mention the BPMN orchestration explicitly in 'What it does'",
+      "flag_for_auto_revision": true
+    }
+  }
+}

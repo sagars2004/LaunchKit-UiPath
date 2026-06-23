@@ -1,0 +1,11 @@
+{
+  "project_name": "LaunchKit",
+  "tagline": "From GitHub URL to published hackathon submission in 20 minutes",
+  "what_it_does": "LaunchKit transforms a GitHub repo and hackathon URL into a complete submission package.",
+  "how_i_built_it": "Built with UiPath Maestro BPMN orchestrating Python Coded Agents that call Gemini 2.0 Flash.",
+  "challenges": "Devpost has no public API — solved with UiPath RPA browser automation.",
+  "accomplishments": "Full three-act pipeline with quality gate scoring and human review gates.",
+  "what_i_learned": "Criteria-first content generation dramatically improves submission quality.",
+  "whats_next": "Accelerator cohort mode, OSS release pipeline, Product Hunt support.",
+  "built_with": ["UiPath Maestro", "Gemini 2.0 Flash", "FastAPI", "Supabase", "Python"]
+}

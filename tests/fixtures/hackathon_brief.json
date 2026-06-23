@@ -1,0 +1,14 @@
+{
+  "event_name": "UiPath AgentHack",
+  "deadline": "2025-07-01T23:59:59Z",
+  "prize_info": "Grand Prize $10,000",
+  "judging_criteria": [
+    {"name": "Technical Execution", "weight": 30, "description": "Quality of implementation"},
+    {"name": "Innovation", "weight": 25, "description": "Novel approach"},
+    {"name": "Business Impact", "weight": 20, "description": "Real-world value"},
+    {"name": "Completeness", "weight": 15, "description": "End-to-end solution"},
+    {"name": "Presentation", "weight": 10, "description": "Demo and documentation"}
+  ],
+  "required_deliverables": ["GitHub repo", "Devpost submission", "Demo video"],
+  "tracks": ["Track 1: Agent Builder", "Track 2: Maestro BPMN"]
+}

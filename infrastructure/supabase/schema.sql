@@ -1,0 +1,2 @@
+-- LaunchKit Supabase schema — STEP 2 implementation pending
+-- Apply via: make db-push

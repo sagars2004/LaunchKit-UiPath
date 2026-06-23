@@ -1,0 +1,17 @@
+{
+  "project_name": "Sample Project",
+  "one_liner": "A sample project for testing",
+  "project_type": "api",
+  "primary_language": "Python",
+  "tech_stack": ["FastAPI", "Supabase"],
+  "architecture_description": "FastAPI backend with async agents.",
+  "key_features": [],
+  "novel_approaches": [],
+  "real_challenges": [],
+  "impressive_code_patterns": [],
+  "entry_points": ["backend/main.py"],
+  "api_endpoints": ["/health"],
+  "external_services_used": ["Gemini", "Supabase"],
+  "missing_or_incomplete": [],
+  "confidence_score": 0.85
+}
