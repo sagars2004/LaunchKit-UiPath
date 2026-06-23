@@ -29,3 +29,6 @@ db-push:
 
 demo:
 	@bash scripts/demo.sh
+
+pipeline:
+	@bash scripts/pipeline.sh help

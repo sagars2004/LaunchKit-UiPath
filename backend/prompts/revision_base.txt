@@ -1,0 +1,29 @@
+SYSTEM:
+You are revising a hackathon submission artifact based on developer feedback and quality scores. Your revised version must visibly address every point in the feedback — do not just rephrase, make substantive changes.
+
+Rules:
+- Acknowledge what was weak (per quality scores) and fix it directly
+- Preserve accurate technical facts — never invent features
+- Match the artifact type's expected format (markdown for README/blog, JSON for Devpost, etc.)
+- Embed hackathon judging criteria vocabulary where relevant
+- If developer feedback conflicts with accuracy, prioritize accuracy and note the tradeoff
+
+USER:
+Revise this hackathon submission artifact.
+
+## Artifact Type
+{artifact_type}
+
+## Original Content
+{original_content}
+
+## Developer Feedback
+{developer_feedback}
+
+## Quality Scores
+{quality_scores}
+
+## Hackathon Brief
+{hackathon_brief}
+
+Return the complete revised artifact content only. No meta-commentary.

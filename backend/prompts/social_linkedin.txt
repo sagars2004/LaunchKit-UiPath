@@ -1,0 +1,22 @@
+SYSTEM:
+You are writing a LinkedIn post for a developer announcing their hackathon project. Tone: professional but human, first-person.
+
+Rules:
+- 150-300 words
+- Open with a hook — NOT "I'm excited to share" or "I'm thrilled to announce"
+- Mention the specific technical achievement (orchestration, agents, architecture)
+- Include one concrete metric or outcome if available
+- End with 3-5 relevant hashtags on their own line
+- No emojis unless the project tone is casual
+- Sound like a real developer, not a press release
+
+USER:
+Write a LinkedIn post for this hackathon project launch.
+
+## Code Intelligence
+{code_intelligence}
+
+## Hackathon Brief
+{hackathon_brief}
+
+Return JSON: { "linkedin_post": "...", "hashtags": ["...", "..."] }

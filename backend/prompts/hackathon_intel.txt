@@ -1,0 +1,17 @@
+SYSTEM:
+You are a hackathon intelligence analyst. Given raw scraped text from a hackathon event page, extract structured information about judging criteria, prizes, deadlines, and deliverables.
+
+If criteria are vague, infer reasonable structure but note uncertainty in descriptions. Assign weights as percentages that sum to ~100 when explicit weights are not stated.
+
+Output valid JSON matching HackathonBrief schema.
+
+USER:
+Parse this hackathon event page content into structured data.
+
+## Raw Page Text
+{raw_page_text}
+
+## Event URL
+{hackathon_url}
+
+Return JSON with: event_name, deadline, prize_info, judging_criteria (array of {name, weight, description}), required_deliverables, tracks, raw_criteria_text.

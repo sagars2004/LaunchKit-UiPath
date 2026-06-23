@@ -25,12 +25,16 @@ class AuthenticationError(LaunchKitError):
     """Invalid or missing API credentials."""
 
 
-class GeminiError(LaunchKitError):
-    """Gemini API call failed after retries."""
+class LLMError(LaunchKitError):
+    """LLM API call failed after retries."""
 
     def __init__(self, message: str, detail: str | None = None, original: Exception | None = None):
         super().__init__(message, detail)
         self.original = original
+
+
+# Backward-compatible alias
+GeminiError = LLMError
 
 
 class SupabaseError(LaunchKitError):
@@ -43,6 +47,15 @@ class GitHubError(LaunchKitError):
 
 class AgentError(LaunchKitError):
     """Agent execution failed."""
+
+
+def format_agent_error(exc: Exception) -> str:
+    """Surface the most useful error message for API responses."""
+    if isinstance(exc, LLMError):
+        return exc.detail or exc.message
+    if exc.__cause__:
+        return format_agent_error(exc.__cause__)
+    return str(exc)
 
 
 def register_exception_handlers(app: FastAPI) -> None:
@@ -74,6 +87,7 @@ def _status_for(exc: LaunchKitError) -> int:
         ValidationError: 422,
         AuthenticationError: 401,
         GeminiError: 502,
+        LLMError: 502,
         SupabaseError: 503,
         GitHubError: 502,
         AgentError: 500,

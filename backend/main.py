@@ -31,6 +31,8 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     configure_logging(settings.environment)
     logger.info("LaunchKit starting (env=%s)", settings.environment)
+    if not settings.launchkit_api_secret:
+        logger.warning("LAUNCHKIT_API_SECRET is not set — /api/v1 routes will reject all requests")
     app.state.settings = settings
     yield
     logger.info("LaunchKit shutting down")
@@ -70,11 +72,10 @@ def create_app() -> FastAPI:
         checks: dict[str, Any] = {
             "api": "ok",
             "supabase": await _check_supabase(settings),
-            "gemini": await _check_gemini(settings),
+            "llm": await _check_llm(settings),
         }
         all_ok = all(
-            v == "ok" or (isinstance(v, dict) and v.get("status") == "ok")
-            for v in checks.values()
+            v == "ok" or (isinstance(v, dict) and v.get("status") == "ok") for v in checks.values()
         )
         return {
             "status": "healthy" if all_ok else "degraded",
@@ -105,9 +106,45 @@ async def _check_supabase(settings: Settings) -> dict[str, str]:
         return {"status": "error", "detail": str(exc)}
 
 
+async def _check_llm(settings: Settings) -> dict[str, str]:
+    provider = settings.resolved_llm_provider
+    if provider == "nvidia":
+        return await _check_nvidia(settings)
+    return await _check_gemini(settings)
+
+
+async def _check_nvidia(settings: Settings) -> dict[str, str]:
+    if not settings.nvidia_api_key:
+        return {"status": "unconfigured", "detail": "NVIDIA_API_KEY missing"}
+
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                f"{settings.nvidia_base_url.rstrip('/')}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.nvidia_api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": settings.nvidia_model,
+                    "messages": [{"role": "user", "content": "ping"}],
+                    "max_tokens": 5,
+                },
+            )
+            if response.status_code == 200:
+                return {"status": "ok", "provider": "nvidia", "model": settings.nvidia_model}
+            return {
+                "status": "error",
+                "provider": "nvidia",
+                "detail": f"HTTP {response.status_code}: {response.text[:200]}",
+            }
+    except Exception as exc:
+        return {"status": "error", "provider": "nvidia", "detail": str(exc)}
+
+
 async def _check_gemini(settings: Settings) -> dict[str, str]:
     if not settings.gemini_api_key:
-        return {"status": "unconfigured", "detail": "GEMINI_API_KEY missing"}
+        return {"status": "unconfigured", "detail": "GEMINI_API_KEY missing (LLM_PROVIDER=gemini)"}
 
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
@@ -116,10 +153,18 @@ async def _check_gemini(settings: Settings) -> dict[str, str]:
                 params={"key": settings.gemini_api_key},
             )
             if response.status_code == 200:
-                return {"status": "ok"}
-            return {"status": "error", "detail": f"HTTP {response.status_code}"}
+                return {
+                    "status": "ok",
+                    "provider": "gemini",
+                    "model": settings.gemini_model,
+                }
+            return {
+                "status": "error",
+                "provider": "gemini",
+                "detail": f"HTTP {response.status_code}",
+            }
     except Exception as exc:
-        return {"status": "error", "detail": str(exc)}
+        return {"status": "error", "provider": "gemini", "detail": str(exc)}
 
 
 app = create_app()
