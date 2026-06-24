@@ -66,6 +66,16 @@ def create_app() -> FastAPI:
     app.include_router(artifacts.router, prefix=api_prefix)
     app.include_router(analytics.router, prefix=api_prefix)
 
+    @app.get("/", tags=["health"])
+    async def root() -> dict[str, Any]:
+        """Landing page for browser visits — API has no HTML UI."""
+        return {
+            "service": "LaunchKit",
+            "status": "running",
+            "health": "/health",
+            "api": api_prefix,
+        }
+
     @app.get("/health", tags=["health"])
     async def health_check() -> dict[str, Any]:
         """Check API, Supabase, and Gemini connectivity."""
