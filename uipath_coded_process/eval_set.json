@@ -1,0 +1,18 @@
+{
+  "evaluations": [
+    {
+      "id": "coding-agent-json-parse",
+      "description": "Verify coding agent runner extracts JSON from fenced CLI output",
+      "input": {
+        "fixture_output": "```json\n{\"project_name\": \"LaunchKit\", \"confidence_score\": 0.9}\n```"
+      },
+      "expected_output": {
+        "project_name": "LaunchKit",
+        "confidence_score": 0.9
+      }
+    }
+  ],
+  "model_settings": {
+    "default": {}
+  }
+}

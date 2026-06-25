@@ -20,6 +20,7 @@ quote-style = "double"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
+pythonpath = ["uipath_coded_process"]
 markers = [
     "integration: marks tests that hit external services (deselect with '-m \"not integration\"')",
 ]

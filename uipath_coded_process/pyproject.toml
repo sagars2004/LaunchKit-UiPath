@@ -1,7 +1,7 @@
 [project]
 name = "launchkit-analyze"
 version = "0.1.0"
-description = "LaunchKit code analysis coded function — calls POST /analyze on the Render API"
+description = "LaunchKit UiPath coded agents — coding CLI analyze + API proxies"
 readme = "README.md"
 authors = [{ name = "Sagar Sahu", email = "sahu.sagar0314@gmail.com" }]
 requires-python = ">=3.11"
@@ -9,3 +9,6 @@ dependencies = [
     "uipath>=2.11.12",
     "httpx>=0.28.0",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

@@ -4,7 +4,7 @@
     "entryPoints": [
         {
             "filePath": "main",
-            "uniqueId": "f2958207-3e4c-4477-be0b-c1a7f321ed99",
+            "uniqueId": "ff95a561-36a8-4548-b783-3849c78bb1a6",
             "type": "function",
             "input": {
                 "type": "object",
@@ -47,15 +47,359 @@
             "graph": {
                 "nodes": [
                     {
-                        "id": "main.py:37",
+                        "id": "main.py:52",
                         "name": "main",
+                        "type": "function",
+                        "metadata": {
+                            "file": "main.py"
+                        }
+                    },
+                    {
+                        "id": "main.py:15",
+                        "name": "_client",
+                        "type": "function",
+                        "metadata": {
+                            "file": "main.py"
+                        }
+                    },
+                    {
+                        "id": "main.py:20",
+                        "name": "_warmup",
                         "type": "function",
                         "metadata": {
                             "file": "main.py"
                         }
                     }
                 ],
-                "edges": []
+                "edges": [
+                    {
+                        "source": "main.py:52",
+                        "target": "main.py:15"
+                    },
+                    {
+                        "source": "main.py:52",
+                        "target": "main.py:20"
+                    }
+                ]
+            }
+        },
+        {
+            "filePath": "analyze_with_coding_agent",
+            "uniqueId": "615153a0-0124-49ee-8c2f-cc277466ae4c",
+            "type": "function",
+            "input": {
+                "type": "object",
+                "properties": {
+                    "run_id": {
+                        "type": "string"
+                    },
+                    "api_url": {
+                        "type": "string"
+                    },
+                    "api_secret": {
+                        "type": "string"
+                    },
+                    "coding_tool": {
+                        "type": "object"
+                    },
+                    "repo_path": {
+                        "type": "string"
+                    },
+                    "work_dir": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "run_id",
+                    "api_url",
+                    "api_secret"
+                ]
+            },
+            "output": {
+                "type": "object",
+                "properties": {
+                    "run_id": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "coding_tool": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "run_id",
+                    "status",
+                    "message",
+                    "coding_tool"
+                ]
+            },
+            "graph": {
+                "nodes": [
+                    {
+                        "id": "analyze_with_coding_agent.py:131",
+                        "name": "analyze_with_coding_agent",
+                        "type": "function",
+                        "metadata": {
+                            "file": "analyze_with_coding_agent.py"
+                        }
+                    },
+                    {
+                        "id": "analyze_with_coding_agent.py:26",
+                        "name": "_client",
+                        "type": "function",
+                        "metadata": {
+                            "file": "analyze_with_coding_agent.py"
+                        }
+                    },
+                    {
+                        "id": "analyze_with_coding_agent.py:30",
+                        "name": "_warmup",
+                        "type": "function",
+                        "metadata": {
+                            "file": "analyze_with_coding_agent.py"
+                        }
+                    },
+                    {
+                        "id": "analyze_with_coding_agent.py:40",
+                        "name": "_fetch_run",
+                        "type": "function",
+                        "metadata": {
+                            "file": "analyze_with_coding_agent.py"
+                        }
+                    },
+                    {
+                        "id": "coding_agents/repo.py:211",
+                        "name": "clone_repo",
+                        "type": "function",
+                        "metadata": {
+                            "file": "coding_agents/repo.py"
+                        }
+                    },
+                    {
+                        "id": "coding_agents/repo.py:170",
+                        "name": "collect_repo_context",
+                        "type": "function",
+                        "metadata": {
+                            "file": "coding_agents/repo.py"
+                        }
+                    },
+                    {
+                        "id": "coding_agents/repo.py:103",
+                        "name": "parse_github_url",
+                        "type": "function",
+                        "metadata": {
+                            "file": "coding_agents/repo.py"
+                        }
+                    },
+                    {
+                        "id": "coding_agents/repo.py:110",
+                        "name": "_should_skip",
+                        "type": "function",
+                        "metadata": {
+                            "file": "coding_agents/repo.py"
+                        }
+                    },
+                    {
+                        "id": "coding_agents/repo.py:136",
+                        "name": "_score_path",
+                        "type": "function",
+                        "metadata": {
+                            "file": "coding_agents/repo.py"
+                        }
+                    },
+                    {
+                        "id": "coding_agents/repo.py:121",
+                        "name": "_truncate_content",
+                        "type": "function",
+                        "metadata": {
+                            "file": "coding_agents/repo.py"
+                        }
+                    },
+                    {
+                        "id": "coding_agents/prompt.py:16",
+                        "name": "build_analysis_prompt",
+                        "type": "function",
+                        "metadata": {
+                            "file": "coding_agents/prompt.py"
+                        }
+                    },
+                    {
+                        "id": "analyze_with_coding_agent.py:65",
+                        "name": "_submit_analysis",
+                        "type": "function",
+                        "metadata": {
+                            "file": "analyze_with_coding_agent.py"
+                        }
+                    },
+                    {
+                        "id": "coding_agents/repo.py:215",
+                        "name": "cleanup_repo",
+                        "type": "function",
+                        "metadata": {
+                            "file": "coding_agents/repo.py"
+                        }
+                    },
+                    {
+                        "id": "coding_agents/repo.py:184",
+                        "name": "format_key_files",
+                        "type": "function",
+                        "metadata": {
+                            "file": "coding_agents/repo.py"
+                        }
+                    },
+                    {
+                        "id": "coding_agents/prompt.py:48",
+                        "name": "criteria_summary_from_brief",
+                        "type": "function",
+                        "metadata": {
+                            "file": "coding_agents/prompt.py"
+                        }
+                    }
+                ],
+                "edges": [
+                    {
+                        "source": "analyze_with_coding_agent.py:131",
+                        "target": "analyze_with_coding_agent.py:26"
+                    },
+                    {
+                        "source": "analyze_with_coding_agent.py:131",
+                        "target": "analyze_with_coding_agent.py:30"
+                    },
+                    {
+                        "source": "analyze_with_coding_agent.py:131",
+                        "target": "analyze_with_coding_agent.py:40"
+                    },
+                    {
+                        "source": "analyze_with_coding_agent.py:131",
+                        "target": "coding_agents/repo.py:211"
+                    },
+                    {
+                        "source": "coding_agents/repo.py:170",
+                        "target": "coding_agents/repo.py:103"
+                    },
+                    {
+                        "source": "coding_agents/repo.py:170",
+                        "target": "coding_agents/repo.py:110"
+                    },
+                    {
+                        "source": "coding_agents/repo.py:170",
+                        "target": "coding_agents/repo.py:136"
+                    },
+                    {
+                        "source": "coding_agents/repo.py:170",
+                        "target": "coding_agents/repo.py:121"
+                    },
+                    {
+                        "source": "analyze_with_coding_agent.py:131",
+                        "target": "coding_agents/repo.py:170"
+                    },
+                    {
+                        "source": "analyze_with_coding_agent.py:131",
+                        "target": "coding_agents/prompt.py:16"
+                    },
+                    {
+                        "source": "analyze_with_coding_agent.py:131",
+                        "target": "analyze_with_coding_agent.py:65"
+                    },
+                    {
+                        "source": "analyze_with_coding_agent.py:131",
+                        "target": "coding_agents/repo.py:215"
+                    },
+                    {
+                        "source": "analyze_with_coding_agent.py:131",
+                        "target": "coding_agents/repo.py:184"
+                    },
+                    {
+                        "source": "analyze_with_coding_agent.py:131",
+                        "target": "coding_agents/prompt.py:48"
+                    }
+                ]
+            }
+        },
+        {
+            "filePath": "generate",
+            "uniqueId": "9c3b043a-d794-43eb-b605-9ca09f474588",
+            "type": "function",
+            "input": {
+                "type": "object",
+                "properties": {
+                    "run_id": {
+                        "type": "string"
+                    },
+                    "api_url": {
+                        "type": "string"
+                    },
+                    "api_secret": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "run_id",
+                    "api_url",
+                    "api_secret"
+                ]
+            },
+            "output": {
+                "type": "object",
+                "properties": {
+                    "run_id": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "run_id",
+                    "status",
+                    "message"
+                ]
+            },
+            "graph": {
+                "nodes": [
+                    {
+                        "id": "generate_agent.py:51",
+                        "name": "generate",
+                        "type": "function",
+                        "metadata": {
+                            "file": "generate_agent.py"
+                        }
+                    },
+                    {
+                        "id": "generate_agent.py:15",
+                        "name": "_client",
+                        "type": "function",
+                        "metadata": {
+                            "file": "generate_agent.py"
+                        }
+                    },
+                    {
+                        "id": "generate_agent.py:19",
+                        "name": "_warmup",
+                        "type": "function",
+                        "metadata": {
+                            "file": "generate_agent.py"
+                        }
+                    }
+                ],
+                "edges": [
+                    {
+                        "source": "generate_agent.py:51",
+                        "target": "generate_agent.py:15"
+                    },
+                    {
+                        "source": "generate_agent.py:51",
+                        "target": "generate_agent.py:19"
+                    }
+                ]
             }
         }
     ]

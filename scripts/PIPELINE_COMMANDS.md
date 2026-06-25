@@ -67,9 +67,33 @@ curl -X POST "$API_URL/api/v1/runs/$RUN_ID/intel" \
 
 ## Step 2 — Code analysis (`/analyze`)
 
+**Backend path** (Gemini/NVIDIA on server):
+
 ```bash
 curl -X POST "$API_URL/api/v1/runs/$RUN_ID/analyze" \
   -H "$AUTH" | python3 -m json.tool
+```
+
+**Coding agent path** (Claude Code, Cursor, Codex, Gemini CLI via UiPath Maestro):
+
+```bash
+# From uipath_coded_process/ after intel completes:
+uv run uipath run analyze_with_coding_agent "{
+  \"run_id\": \"$RUN_ID\",
+  \"api_url\": \"$API_URL\",
+  \"api_secret\": \"$LAUNCHKIT_API_SECRET\",
+  \"coding_tool\": \"claude\"
+}"
+```
+
+Or submit pre-computed analysis directly:
+
+```bash
+curl -X POST "$API_URL/api/v1/runs/$RUN_ID/analyze/submit" \
+  -H "$AUTH" \
+  -H "Content-Type: application/json" \
+  -d '{"code_intelligence": {...}, "coding_tool": "cursor"}' \
+  | python3 -m json.tool
 ```
 
 ---

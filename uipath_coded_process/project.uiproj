@@ -1,6 +1,6 @@
 {
   "ProjectType": "Function",
   "Name": "launchkit-analyze",
-  "Description": "LaunchKit code analysis coded function \u2014 calls POST /analyze on the Render API",
+  "Description": "LaunchKit UiPath coded agents \u2014 coding CLI analyze + API proxies",
   "MainFile": null
 }

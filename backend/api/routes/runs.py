@@ -18,12 +18,14 @@ from backend.core.exceptions import AgentError, ValidationError, format_agent_er
 from backend.models.artifact import ArtifactStatus, ArtifactType
 from backend.models.content import DevpostCopy
 from backend.models.run import RunStatus
+from backend.models.intelligence import CodeIntelligence
 from backend.models.schemas import (
     ActionResponse,
     CreateRunRequest,
     CreateRunResponse,
     PublishResponse,
     RunResponse,
+    SubmitAnalyzeRequest,
 )
 from backend.services.artifact_store import ArtifactStore, get_artifact_store
 from backend.services.content_generator import (
@@ -211,6 +213,47 @@ async def trigger_analyze(
             {"status": RunStatus.FAILED.value, "error_message": str(exc)},
         )
         raise AgentError("Code analysis failed", str(exc)) from exc
+
+
+@router.post("/{run_id}/analyze/submit", response_model=ActionResponse)
+async def submit_analyze(
+    run_id: UUID,
+    body: SubmitAnalyzeRequest,
+    store: ArtifactStore = Depends(get_store),
+) -> ActionResponse:
+    """Accept CodeIntelligence produced by a UiPath coding agent (Claude, Cursor, Codex, Gemini CLI)."""
+    run = await store.get_run(run_id)
+    if not run.hackathon_brief:
+        raise ValidationError(
+            "Hackathon brief required",
+            "Run POST /runs/{id}/intel before analyze/submit",
+        )
+
+    try:
+        intel = CodeIntelligence.model_validate(body.code_intelligence)
+    except Exception as exc:
+        raise ValidationError("Invalid code_intelligence payload", str(exc)) from exc
+
+    repo_context = dict(body.repo_context or {})
+    repo_context["_launchkit_meta"] = {
+        "coding_tool": body.coding_tool,
+        "analysis_source": "uipath_coding_agent",
+    }
+
+    await store.update_run(
+        run_id,
+        {
+            "code_intelligence": intel.model_dump(),
+            "repo_context": repo_context,
+            "status": RunStatus.ANALYZING.value,
+        },
+    )
+    return ActionResponse(
+        run_id=run_id,
+        status=RunStatus.ANALYZING,
+        message=f"Code analysis complete via {body.coding_tool}",
+        coding_tool=body.coding_tool,
+    )
 
 
 @router.post("/{run_id}/generate", response_model=ActionResponse)

@@ -144,6 +144,45 @@ async def test_analyze_requires_intel(test_client, auth_headers):
 
 
 @pytest.mark.asyncio
+async def test_submit_analyze_from_coding_agent(
+    test_client, auth_headers, memory_store, load_fixture
+):
+    create = await test_client.post(
+        "/api/v1/runs",
+        headers=auth_headers,
+        json={
+            "github_url": "https://github.com/tiangolo/fastapi",
+            "hackathon_url": "https://devpost.com/hackathons",
+        },
+    )
+    run_id = UUID(create.json()["run_id"])
+    await memory_store.update_run(
+        run_id,
+        {"hackathon_brief": load_fixture("hackathon_brief.json")},
+    )
+
+    code_intel = load_fixture("code_intelligence.json")
+    resp = await test_client.post(
+        f"/api/v1/runs/{run_id}/analyze/submit",
+        headers=auth_headers,
+        json={
+            "code_intelligence": code_intel,
+            "repo_context": {"owner": "tiangolo", "repo": "fastapi"},
+            "coding_tool": "cursor",
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["coding_tool"] == "cursor"
+    assert "cursor" in data["message"]
+
+    run_resp = await test_client.get(f"/api/v1/runs/{run_id}", headers=auth_headers)
+    run = run_resp.json()["run"]
+    assert run["code_intelligence"]["project_name"] == code_intel["project_name"]
+    assert run["repo_context"]["_launchkit_meta"]["coding_tool"] == "cursor"
+
+
+@pytest.mark.asyncio
 async def test_artifact_approval_flow(test_client, auth_headers, memory_store):
     create = await test_client.post(
         "/api/v1/runs",

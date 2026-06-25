@@ -1,9 +1,11 @@
 """API request/response schemas."""
 
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field, HttpUrl
+
+CodingTool = Literal["claude", "cursor", "codex", "gemini"]
 
 from backend.models.artifact import Artifact, ArtifactType
 from backend.models.metric import Metric, Retrospective
@@ -88,3 +90,12 @@ class ActionResponse(BaseModel):
     run_id: UUID
     status: RunStatus
     message: str = ""
+    coding_tool: CodingTool | None = None
+
+
+class SubmitAnalyzeRequest(BaseModel):
+    """Result from a UiPath coded agent that invoked an external coding CLI."""
+
+    code_intelligence: dict[str, Any]
+    repo_context: dict[str, Any] | None = None
+    coding_tool: CodingTool = "claude"

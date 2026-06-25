@@ -1,6 +1,8 @@
 {
   "functions": {
-    "main": "main.py:main"
+    "main": "main.py:main",
+    "analyze_with_coding_agent": "analyze_with_coding_agent.py:analyze_with_coding_agent",
+    "generate": "generate_agent.py:generate"
   },
   "id": "4ea96681-ce0f-4a72-bcb7-199fb952f838"
 }
