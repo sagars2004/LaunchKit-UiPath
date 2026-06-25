@@ -6,7 +6,7 @@ import logging
 import zipfile
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Response, status
 from fastapi.responses import StreamingResponse
 
 from backend.agents.code_analyzer_agent import CodeAnalyzerAgent
@@ -25,7 +25,7 @@ from backend.models.schemas import (
     PublishResponse,
     RunResponse,
 )
-from backend.services.artifact_store import ArtifactStore
+from backend.services.artifact_store import ArtifactStore, get_artifact_store
 from backend.services.content_generator import (
     ContentGenerator,
     generate_winning_brief,
@@ -65,10 +65,47 @@ async def get_run(
 @router.post("/{run_id}/intel", response_model=ActionResponse)
 async def trigger_intel(
     run_id: UUID,
+    response: Response,
+    background_tasks: BackgroundTasks,
+    async_mode: bool = Query(False, alias="async"),
     store: ArtifactStore = Depends(get_store),
 ) -> ActionResponse:
-    """Trigger Act I: hackathon intel + winner research + winning brief."""
+    """Trigger Act I: hackathon intel + winner research + winning brief.
+
+    Pass ``?async=true`` for Maestro/UiPath — returns in <2s; intel continues on
+    the server. Use a Maestro timer or ``GET /runs/{id}`` before analyze.
+    """
     run = await store.get_run(run_id)
+
+    if run.hackathon_brief:
+        return ActionResponse(
+            run_id=run_id,
+            status=RunStatus.INTAKE,
+            message="Intelligence gathering already complete",
+        )
+
+    if async_mode:
+        if run.status == RunStatus.INTELLIGENCE:
+            response.status_code = status.HTTP_202_ACCEPTED
+            return ActionResponse(
+                run_id=run_id,
+                status=RunStatus.INTELLIGENCE,
+                message="Intel already in progress",
+            )
+
+        await store.update_run_status(run_id, RunStatus.INTELLIGENCE)
+        background_tasks.add_task(_run_intel_job, run_id, store)
+        response.status_code = status.HTTP_202_ACCEPTED
+        return ActionResponse(
+            run_id=run_id,
+            status=RunStatus.INTELLIGENCE,
+            message="Intel started — poll GET /runs/{id} until status is intake or failed",
+        )
+
+    return await _execute_intel(run_id, run, store)
+
+
+async def _execute_intel(run_id: UUID, run, store: ArtifactStore) -> ActionResponse:
     await store.update_run_status(run_id, RunStatus.INTELLIGENCE)
 
     hackathon_url = run.intake.hackathon_url
@@ -112,6 +149,16 @@ async def trigger_intel(
             {"status": RunStatus.FAILED.value, "error_message": str(exc)},
         )
         raise AgentError("Intelligence gathering failed", format_agent_error(exc)) from exc
+
+
+async def _run_intel_job(run_id: UUID, store: ArtifactStore | None = None) -> None:
+    store = store or get_artifact_store()
+    try:
+        run = await store.get_run(run_id)
+        await _execute_intel(run_id, run, store)
+        logger.info("Background intel complete for run %s", run_id)
+    except Exception as exc:
+        logger.exception("Background intel failed for run %s: %s", run_id, exc)
 
 
 async def _gather_intel(intel_agent, winner_agent, url, name, track):

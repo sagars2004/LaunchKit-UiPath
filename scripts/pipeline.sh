@@ -120,7 +120,9 @@ LaunchKit pipeline commands:
   health        GET  /health
   create        POST /api/v1/runs
   get           GET  /api/v1/runs/{id}
-  intel         POST /api/v1/runs/{id}/intel          Step 1
+  intel         POST /api/v1/runs/{id}/intel          Step 1 (sync)
+  intel-async   POST /api/v1/runs/{id}/intel?async=true  Step 1 (Maestro)
+  wait-intel    Poll GET /runs/{id} until hackathon_brief exists
   analyze       POST /api/v1/runs/{id}/analyze        Step 2
   generate      POST /api/v1/runs/{id}/generate       Step 3
   artifacts     GET  /api/v1/runs/{id}/artifacts
@@ -189,6 +191,34 @@ cmd_intel() {
   _require_run_id
   echo "==> Step 1: Intelligence gathering..."
   curl -s -X POST "${API_URL}/api/v1/runs/${RUN_ID}/intel" -H "${AUTH}" | python3 -m json.tool
+}
+
+cmd_intel_async() {
+  _require_run_id
+  echo "==> Step 1: Start intelligence (async)..."
+  curl -s -X POST "${API_URL}/api/v1/runs/${RUN_ID}/intel?async=true" -H "${AUTH}" | python3 -m json.tool
+}
+
+cmd_wait_intel() {
+  _require_run_id
+  echo "==> Waiting for intel to complete..."
+  for _ in $(seq 1 40); do
+    status=$(curl -s "${API_URL}/api/v1/runs/${RUN_ID}" -H "${AUTH}")
+    ready=$(echo "${status}" | python3 -c "import sys,json; print(json.load(sys.stdin)['run'].get('hackathon_brief') is not None)")
+    failed=$(echo "${status}" | python3 -c "import sys,json; print(json.load(sys.stdin)['run'].get('status') == 'failed')")
+    if [[ "${ready}" == "True" ]]; then
+      echo "${status}" | python3 -m json.tool
+      return 0
+    fi
+    if [[ "${failed}" == "True" ]]; then
+      echo "Intel failed:" >&2
+      echo "${status}" | python3 -m json.tool >&2
+      return 1
+    fi
+    sleep 15
+  done
+  echo "Timed out waiting for intel" >&2
+  return 1
 }
 
 cmd_analyze() {
@@ -285,7 +315,7 @@ COMMAND="${1:-help}"
 shift || true
 
 case "${COMMAND}" in
-  create|get|intel|analyze|generate|artifacts|artifact|approve|approve-all|revise|publish|export|metrics|poll-metrics|retrospective|all)
+  create|get|intel|intel-async|wait-intel|analyze|generate|artifacts|artifact|approve|approve-all|revise|publish|export|metrics|poll-metrics|retrospective|all)
     _require_secret
     ;;
 esac
@@ -297,6 +327,8 @@ case "${COMMAND}" in
   create)        cmd_create ;;
   get)           cmd_get ;;
   intel)         cmd_intel ;;
+  intel-async)   cmd_intel_async ;;
+  wait-intel)    cmd_wait_intel ;;
   analyze)       cmd_analyze ;;
   generate)      cmd_generate ;;
   artifacts)     cmd_artifacts ;;
