@@ -88,15 +88,3 @@ class ActionResponse(BaseModel):
     run_id: UUID
     status: RunStatus
     message: str = ""
-
-
-class PipelineStatusResponse(BaseModel):
-    """Lightweight poll target for Maestro / UiPath (fast GET, no large payloads)."""
-
-    run_id: UUID
-    status: RunStatus
-    intel_ready: bool
-    analyze_ready: bool
-    generate_ready: bool
-    failed: bool
-    error_message: str | None = None

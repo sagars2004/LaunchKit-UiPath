@@ -6,7 +6,7 @@ import logging
 import zipfile
 from uuid import UUID
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Query, Response, status
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
 from backend.agents.code_analyzer_agent import CodeAnalyzerAgent
@@ -22,11 +22,10 @@ from backend.models.schemas import (
     ActionResponse,
     CreateRunRequest,
     CreateRunResponse,
-    PipelineStatusResponse,
     PublishResponse,
     RunResponse,
 )
-from backend.services.artifact_store import ArtifactStore, get_artifact_store
+from backend.services.artifact_store import ArtifactStore
 from backend.services.content_generator import (
     ContentGenerator,
     generate_winning_brief,
@@ -63,85 +62,13 @@ async def get_run(
     return RunResponse(run=run, artifacts=artifacts)
 
 
-@router.get("/{run_id}/pipeline-status", response_model=PipelineStatusResponse)
-async def get_pipeline_status(
-    run_id: UUID,
-    store: ArtifactStore = Depends(get_store),
-) -> PipelineStatusResponse:
-    """Fast poll endpoint for Maestro — use after /intel/start, /analyze/start, etc."""
-    run = await store.get_run(run_id)
-    return PipelineStatusResponse(
-        run_id=run_id,
-        status=run.status,
-        intel_ready=bool(run.hackathon_brief),
-        analyze_ready=bool(run.code_intelligence),
-        generate_ready=run.status == RunStatus.REVIEWING or bool(run.quality_report),
-        failed=run.status == RunStatus.FAILED,
-        error_message=run.error_message,
-    )
-
-
 @router.post("/{run_id}/intel", response_model=ActionResponse)
 async def trigger_intel(
     run_id: UUID,
-    response: Response,
-    background_tasks: BackgroundTasks,
-    async_mode: bool = Query(False, alias="async"),
     store: ArtifactStore = Depends(get_store),
 ) -> ActionResponse:
-    """Trigger Act I: hackathon intel + winner research + winning brief.
-
-    Pass ``?async=true`` for Maestro/UiPath — returns in <2s; poll GET /runs/{id}
-    until ``status`` is ``intake`` (done) or ``failed``.
-    """
+    """Trigger Act I: hackathon intel + winner research + winning brief."""
     run = await store.get_run(run_id)
-
-    if run.hackathon_brief:
-        return ActionResponse(
-            run_id=run_id,
-            status=RunStatus.INTAKE,
-            message="Intelligence gathering already complete",
-        )
-
-    if async_mode:
-        if run.status == RunStatus.INTELLIGENCE:
-            response.status_code = status.HTTP_202_ACCEPTED
-            return ActionResponse(
-                run_id=run_id,
-                status=RunStatus.INTELLIGENCE,
-                message="Intel already in progress — poll GET /runs/{id}",
-            )
-
-        await store.update_run_status(run_id, RunStatus.INTELLIGENCE)
-        background_tasks.add_task(_run_intel_job, run_id, store)
-        response.status_code = status.HTTP_202_ACCEPTED
-        return ActionResponse(
-            run_id=run_id,
-            status=RunStatus.INTELLIGENCE,
-            message="Intel started — poll GET /runs/{id} until status is intake or failed",
-        )
-
-    return await _execute_intel(run_id, run, store)
-
-
-@router.post("/{run_id}/intel/start", response_model=ActionResponse)
-async def start_intel(
-    run_id: UUID,
-    response: Response,
-    background_tasks: BackgroundTasks,
-    store: ArtifactStore = Depends(get_store),
-) -> ActionResponse:
-    """Start intel in background (202). UiPath gateway step: ``intelStart``."""
-    return await trigger_intel(
-        run_id,
-        response,
-        background_tasks,
-        async_mode=True,
-        store=store,
-    )
-
-
-async def _execute_intel(run_id: UUID, run, store: ArtifactStore) -> ActionResponse:
     await store.update_run_status(run_id, RunStatus.INTELLIGENCE)
 
     hackathon_url = run.intake.hackathon_url
@@ -187,16 +114,6 @@ async def _execute_intel(run_id: UUID, run, store: ArtifactStore) -> ActionRespo
         raise AgentError("Intelligence gathering failed", format_agent_error(exc)) from exc
 
 
-async def _run_intel_job(run_id: UUID, store: ArtifactStore | None = None) -> None:
-    store = store or get_artifact_store()
-    try:
-        run = await store.get_run(run_id)
-        await _execute_intel(run_id, run, store)
-        logger.info("Background intel complete for run %s", run_id)
-    except Exception as exc:
-        logger.exception("Background intel failed for run %s: %s", run_id, exc)
-
-
 async def _gather_intel(intel_agent, winner_agent, url, name, track):
     import asyncio
 
@@ -209,12 +126,9 @@ async def _gather_intel(intel_agent, winner_agent, url, name, track):
 @router.post("/{run_id}/analyze", response_model=ActionResponse)
 async def trigger_analyze(
     run_id: UUID,
-    response: Response,
-    background_tasks: BackgroundTasks,
-    async_mode: bool = Query(False, alias="async"),
     store: ArtifactStore = Depends(get_store),
 ) -> ActionResponse:
-    """Trigger code analysis agent. Use ``?async=true`` + poll GET /runs/{id}."""
+    """Trigger code analysis agent."""
     run = await store.get_run(run_id)
     if not run.hackathon_brief:
         raise ValidationError(
@@ -222,52 +136,6 @@ async def trigger_analyze(
             "Run POST /runs/{id}/intel before analyze",
         )
 
-    if run.code_intelligence:
-        return ActionResponse(
-            run_id=run_id,
-            status=RunStatus.ANALYZING,
-            message="Code analysis already complete",
-        )
-
-    if async_mode:
-        if run.status == RunStatus.ANALYZING and not run.code_intelligence:
-            response.status_code = status.HTTP_202_ACCEPTED
-            return ActionResponse(
-                run_id=run_id,
-                status=RunStatus.ANALYZING,
-                message="Analyze already in progress — poll GET /runs/{id}",
-            )
-
-        await store.update_run_status(run_id, RunStatus.ANALYZING)
-        background_tasks.add_task(_run_analyze_job, run_id, store)
-        response.status_code = status.HTTP_202_ACCEPTED
-        return ActionResponse(
-            run_id=run_id,
-            status=RunStatus.ANALYZING,
-            message="Analyze started — poll GET /runs/{id} until code_intelligence is set",
-        )
-
-    return await _execute_analyze(run_id, run, store)
-
-
-@router.post("/{run_id}/analyze/start", response_model=ActionResponse)
-async def start_analyze(
-    run_id: UUID,
-    response: Response,
-    background_tasks: BackgroundTasks,
-    store: ArtifactStore = Depends(get_store),
-) -> ActionResponse:
-    """Start analyze in background (202). UiPath gateway step: ``analyzeStart``."""
-    return await trigger_analyze(
-        run_id,
-        response,
-        background_tasks,
-        async_mode=True,
-        store=store,
-    )
-
-
-async def _execute_analyze(run_id: UUID, run, store: ArtifactStore) -> ActionResponse:
     await store.update_run_status(run_id, RunStatus.ANALYZING)
 
     try:
@@ -298,28 +166,12 @@ async def _execute_analyze(run_id: UUID, run, store: ArtifactStore) -> ActionRes
         raise AgentError("Code analysis failed", str(exc)) from exc
 
 
-async def _run_analyze_job(run_id: UUID, store: ArtifactStore | None = None) -> None:
-    store = store or get_artifact_store()
-    try:
-        run = await store.get_run(run_id)
-        await _execute_analyze(run_id, run, store)
-        logger.info("Background analyze complete for run %s", run_id)
-    except Exception as exc:
-        logger.exception("Background analyze failed for run %s: %s", run_id, exc)
-
-
 @router.post("/{run_id}/generate", response_model=ActionResponse)
 async def trigger_generate(
     run_id: UUID,
-    response: Response,
-    background_tasks: BackgroundTasks,
-    async_mode: bool = Query(False, alias="async"),
     store: ArtifactStore = Depends(get_store),
 ) -> ActionResponse:
-    """Generate all 5 content artifacts, score them, and store results.
-
-    Use ``?async=true`` + poll GET /runs/{id} until ``status`` is ``reviewing``.
-    """
+    """Generate all 5 content artifacts, score them, and store results."""
     run = await store.get_run(run_id)
     if not run.code_intelligence:
         raise ValidationError(
@@ -329,52 +181,6 @@ async def trigger_generate(
     if not run.hackathon_brief:
         raise ValidationError("Hackathon brief required", "Run intel first")
 
-    if run.status == RunStatus.REVIEWING and run.quality_report:
-        return ActionResponse(
-            run_id=run_id,
-            status=RunStatus.REVIEWING,
-            message="Content generation already complete",
-        )
-
-    if async_mode:
-        if run.status in (RunStatus.GENERATING, RunStatus.SCORING):
-            response.status_code = status.HTTP_202_ACCEPTED
-            return ActionResponse(
-                run_id=run_id,
-                status=run.status,
-                message="Generate already in progress — poll GET /runs/{id}",
-            )
-
-        await store.update_run_status(run_id, RunStatus.GENERATING)
-        background_tasks.add_task(_run_generate_job, run_id, store)
-        response.status_code = status.HTTP_202_ACCEPTED
-        return ActionResponse(
-            run_id=run_id,
-            status=RunStatus.GENERATING,
-            message="Generate started — poll GET /runs/{id} until status is reviewing",
-        )
-
-    return await _execute_generate(run_id, run, store)
-
-
-@router.post("/{run_id}/generate/start", response_model=ActionResponse)
-async def start_generate(
-    run_id: UUID,
-    response: Response,
-    background_tasks: BackgroundTasks,
-    store: ArtifactStore = Depends(get_store),
-) -> ActionResponse:
-    """Start generate in background (202). UiPath gateway step: ``generateStart``."""
-    return await trigger_generate(
-        run_id,
-        response,
-        background_tasks,
-        async_mode=True,
-        store=store,
-    )
-
-
-async def _execute_generate(run_id: UUID, run, store: ArtifactStore) -> ActionResponse:
     winning_brief = run.winning_brief or {}
     await store.update_run_status(run_id, RunStatus.GENERATING)
 
@@ -428,16 +234,6 @@ async def _execute_generate(run_id: UUID, run, store: ArtifactStore) -> ActionRe
             {"status": RunStatus.FAILED.value, "error_message": str(exc)},
         )
         raise AgentError("Content generation failed", str(exc)) from exc
-
-
-async def _run_generate_job(run_id: UUID, store: ArtifactStore | None = None) -> None:
-    store = store or get_artifact_store()
-    try:
-        run = await store.get_run(run_id)
-        await _execute_generate(run_id, run, store)
-        logger.info("Background generate complete for run %s", run_id)
-    except Exception as exc:
-        logger.exception("Background generate failed for run %s: %s", run_id, exc)
 
 
 @router.post("/{run_id}/publish", response_model=PublishResponse)
