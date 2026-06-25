@@ -76,6 +76,11 @@ def create_app() -> FastAPI:
             "api": api_prefix,
         }
 
+    @app.get("/health/live", tags=["health"])
+    async def health_live() -> dict[str, str]:
+        """Fast liveness probe for Render/load balancers — no external calls."""
+        return {"status": "ok"}
+
     @app.get("/health", tags=["health"])
     async def health_check() -> dict[str, Any]:
         """Check API, Supabase, and Gemini connectivity."""

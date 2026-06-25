@@ -1,0 +1,6 @@
+{
+  "ProjectType": "Function",
+  "Name": "launchkit-analyze",
+  "Description": "LaunchKit code analysis coded function \u2014 calls POST /analyze on the Render API",
+  "MainFile": null
+}

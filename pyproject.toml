@@ -23,3 +23,8 @@ testpaths = ["tests"]
 markers = [
     "integration: marks tests that hit external services (deselect with '-m \"not integration\"')",
 ]
+
+[tool.uv.workspace]
+members = [
+    "uipath_coded_process",
+]

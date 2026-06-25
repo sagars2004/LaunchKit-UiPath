@@ -1,0 +1,9 @@
+# Render Blueprint — optional; or set these manually in the Render dashboard.
+# https://render.com/docs/deploy-fastapi
+
+services:
+  - type: web
+    name: launchkit-uipath
+    runtime: docker
+    healthCheckPath: /health/live
+    # Full dependency check (Supabase + LLM): GET /health — use for manual monitoring only.

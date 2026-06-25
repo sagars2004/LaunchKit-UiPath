@@ -2,6 +2,8 @@
 .env
 .env.local
 .env.*.local
+uipath_coded_process/.env
+uipath_coded_process/.uipath/
 
 # Python
 __pycache__/
