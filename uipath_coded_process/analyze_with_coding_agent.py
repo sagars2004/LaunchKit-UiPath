@@ -61,6 +61,10 @@ def _submit_analysis(
         headers=headers,
         json=payload,
     )
+    if response.status_code == 422:
+        raise CodingAgentError(
+            f"API rejected code_intelligence: {response.text}"
+        )
     response.raise_for_status()
     return response.json()
 

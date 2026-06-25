@@ -156,6 +156,7 @@ What happens internally:
 | `agent not found on PATH` | Run Part 1 Cursor CLI install |
 | `Run intel required` | Run `./scripts/pipeline.sh intel` first |
 | `cursor failed` / auth | Run `agent login` or set `CURSOR_API_KEY` |
+| `Workspace Trust Required` | Fixed in code (`--trust` flag). Pull latest and retry |
 
 ### Step 4.5 — Generate artifacts
 

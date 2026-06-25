@@ -41,5 +41,6 @@ def test_cursor_command_uses_agent_binary(monkeypatch):
     cmd = _build_command("cursor", "analyze this repo", "/tmp/repo")
     assert cmd[0] == "agent"
     assert "-p" in cmd
+    assert "--trust" in cmd
     assert "--output-format" in cmd
     assert "json" in cmd

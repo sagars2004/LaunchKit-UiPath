@@ -64,8 +64,9 @@ def _build_command(tool: CodingTool, prompt: str, repo_path: str) -> list[str]:
     if tool == "claude":
         return ["claude", "-p", prompt, "--output-format", "text"]
     if tool == "cursor":
-        # Cursor CLI is `agent` (not `cursor`). See https://cursor.com/docs/cli/headless
-        return [_cursor_binary(), "-p", "--output-format", "json", prompt]
+        # Cursor CLI is `agent` (not `cursor`). --trust required for non-interactive/CI runs.
+        # See https://cursor.com/docs/cli/headless
+        return [_cursor_binary(), "-p", "--trust", "--output-format", "json", prompt]
     if tool == "codex":
         return ["codex", "exec", "--full-auto", prompt]
     if tool == "gemini":
@@ -122,5 +123,9 @@ class CodingAgentRunner:
             detail = completed.stderr.strip() or output or f"exit code {completed.returncode}"
             raise CodingAgentError(f"{tool} failed: {detail}")
 
+        from coding_agents.normalize import normalize_code_intelligence, unwrap_cli_response
+
         parsed = extract_json_object(output)
+        parsed = unwrap_cli_response(parsed, tool, output)
+        parsed = normalize_code_intelligence(parsed)
         return CodingAgentResult(tool=tool, raw_output=output, parsed=parsed)

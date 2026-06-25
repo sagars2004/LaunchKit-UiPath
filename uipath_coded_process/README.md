@@ -48,7 +48,7 @@ uv run uipath run analyze_with_coding_agent '{
 | Tool | Default command | Override env var |
 |------|-----------------|------------------|
 | Claude Code | `claude -p "{prompt}" --output-format text` | `LAUNCHKIT_CLAUDE_CMD` |
-| Cursor | `agent -p --output-format json "{prompt}"` | `LAUNCHKIT_CURSOR_CMD` |
+| Cursor | `agent -p --trust --output-format json "{prompt}"` | `LAUNCHKIT_CURSOR_CMD` |
 | Codex | `codex exec --full-auto "{prompt}"` | `LAUNCHKIT_CODEX_CMD` |
 | Gemini CLI | `gemini -p "{prompt}"` | `LAUNCHKIT_GEMINI_CMD` |
 
