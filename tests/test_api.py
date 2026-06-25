@@ -91,6 +91,44 @@ async def test_intel_flow(test_client, auth_headers, load_fixture):
 
 
 @pytest.mark.asyncio
+async def test_intel_async_returns_immediately(test_client, auth_headers, load_fixture):
+    create = await test_client.post(
+        "/api/v1/runs",
+        headers=auth_headers,
+        json={
+            "github_url": "https://github.com/tiangolo/fastapi",
+            "hackathon_url": "https://devpost.com/hackathons",
+        },
+    )
+    run_id = create.json()["run_id"]
+
+    with (
+        patch("backend.api.routes.runs.HackathonIntelAgent") as mock_intel_cls,
+        patch("backend.api.routes.runs.WinnerResearcherAgent") as mock_winner_cls,
+        patch("backend.api.routes.runs.generate_winning_brief", new_callable=AsyncMock) as mock_wb,
+    ):
+        from backend.models.intelligence import HackathonBrief, WinnerPatterns
+
+        mock_intel_cls.return_value.run = AsyncMock(
+            return_value=HackathonBrief.model_validate(load_fixture("hackathon_brief.json"))
+        )
+        mock_winner_cls.return_value.run = AsyncMock(
+            return_value=WinnerPatterns(hackathon_name="Test")
+        )
+        mock_wb.return_value = {"headline_recommendation": "Test brief"}
+
+        resp = await test_client.post(
+            f"/api/v1/runs/{run_id}/intel?async=true",
+            headers=auth_headers,
+        )
+        assert resp.status_code == 202
+        assert "started" in resp.json()["message"].lower()
+
+        get_resp = await test_client.get(f"/api/v1/runs/{run_id}", headers=auth_headers)
+        assert get_resp.json()["run"]["hackathon_brief"] is not None
+
+
+@pytest.mark.asyncio
 async def test_analyze_requires_intel(test_client, auth_headers):
     create = await test_client.post(
         "/api/v1/runs",
