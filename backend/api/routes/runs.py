@@ -22,6 +22,7 @@ from backend.models.schemas import (
     ActionResponse,
     CreateRunRequest,
     CreateRunResponse,
+    PipelineStatusResponse,
     PublishResponse,
     RunResponse,
 )
@@ -60,6 +61,24 @@ async def get_run(
     run = await store.get_run(run_id)
     artifacts = await store.list_artifacts(run_id)
     return RunResponse(run=run, artifacts=artifacts)
+
+
+@router.get("/{run_id}/pipeline-status", response_model=PipelineStatusResponse)
+async def get_pipeline_status(
+    run_id: UUID,
+    store: ArtifactStore = Depends(get_store),
+) -> PipelineStatusResponse:
+    """Fast poll endpoint for Maestro — use after /intel/start, /analyze/start, etc."""
+    run = await store.get_run(run_id)
+    return PipelineStatusResponse(
+        run_id=run_id,
+        status=run.status,
+        intel_ready=bool(run.hackathon_brief),
+        analyze_ready=bool(run.code_intelligence),
+        generate_ready=run.status == RunStatus.REVIEWING or bool(run.quality_report),
+        failed=run.status == RunStatus.FAILED,
+        error_message=run.error_message,
+    )
 
 
 @router.post("/{run_id}/intel", response_model=ActionResponse)
@@ -103,6 +122,23 @@ async def trigger_intel(
         )
 
     return await _execute_intel(run_id, run, store)
+
+
+@router.post("/{run_id}/intel/start", response_model=ActionResponse)
+async def start_intel(
+    run_id: UUID,
+    response: Response,
+    background_tasks: BackgroundTasks,
+    store: ArtifactStore = Depends(get_store),
+) -> ActionResponse:
+    """Start intel in background (202). UiPath gateway step: ``intelStart``."""
+    return await trigger_intel(
+        run_id,
+        response,
+        background_tasks,
+        async_mode=True,
+        store=store,
+    )
 
 
 async def _execute_intel(run_id: UUID, run, store: ArtifactStore) -> ActionResponse:
@@ -214,6 +250,23 @@ async def trigger_analyze(
     return await _execute_analyze(run_id, run, store)
 
 
+@router.post("/{run_id}/analyze/start", response_model=ActionResponse)
+async def start_analyze(
+    run_id: UUID,
+    response: Response,
+    background_tasks: BackgroundTasks,
+    store: ArtifactStore = Depends(get_store),
+) -> ActionResponse:
+    """Start analyze in background (202). UiPath gateway step: ``analyzeStart``."""
+    return await trigger_analyze(
+        run_id,
+        response,
+        background_tasks,
+        async_mode=True,
+        store=store,
+    )
+
+
 async def _execute_analyze(run_id: UUID, run, store: ArtifactStore) -> ActionResponse:
     await store.update_run_status(run_id, RunStatus.ANALYZING)
 
@@ -302,6 +355,23 @@ async def trigger_generate(
         )
 
     return await _execute_generate(run_id, run, store)
+
+
+@router.post("/{run_id}/generate/start", response_model=ActionResponse)
+async def start_generate(
+    run_id: UUID,
+    response: Response,
+    background_tasks: BackgroundTasks,
+    store: ArtifactStore = Depends(get_store),
+) -> ActionResponse:
+    """Start generate in background (202). UiPath gateway step: ``generateStart``."""
+    return await trigger_generate(
+        run_id,
+        response,
+        background_tasks,
+        async_mode=True,
+        store=store,
+    )
 
 
 async def _execute_generate(run_id: UUID, run, store: ArtifactStore) -> ActionResponse:
