@@ -4,7 +4,7 @@
     "entryPoints": [
         {
             "filePath": "main",
-            "uniqueId": "ff95a561-36a8-4548-b783-3849c78bb1a6",
+            "uniqueId": "dfeaa9d5-d458-4e6e-967f-592f3f40d986",
             "type": "function",
             "input": {
                 "type": "object",
@@ -85,7 +85,7 @@
         },
         {
             "filePath": "analyze_with_coding_agent",
-            "uniqueId": "615153a0-0124-49ee-8c2f-cc277466ae4c",
+            "uniqueId": "ce12d0d2-6160-4657-b5af-cea5ee9c90d5",
             "type": "function",
             "input": {
                 "type": "object",
@@ -100,7 +100,7 @@
                         "type": "string"
                     },
                     "coding_tool": {
-                        "type": "object"
+                        "type": "string"
                     },
                     "repo_path": {
                         "type": "string"
@@ -141,7 +141,7 @@
             "graph": {
                 "nodes": [
                     {
-                        "id": "analyze_with_coding_agent.py:131",
+                        "id": "analyze_with_coding_agent.py:135",
                         "name": "analyze_with_coding_agent",
                         "type": "function",
                         "metadata": {
@@ -229,7 +229,7 @@
                         }
                     },
                     {
-                        "id": "analyze_with_coding_agent.py:65",
+                        "id": "analyze_with_coding_agent.py:69",
                         "name": "_submit_analysis",
                         "type": "function",
                         "metadata": {
@@ -263,19 +263,19 @@
                 ],
                 "edges": [
                     {
-                        "source": "analyze_with_coding_agent.py:131",
+                        "source": "analyze_with_coding_agent.py:135",
                         "target": "analyze_with_coding_agent.py:26"
                     },
                     {
-                        "source": "analyze_with_coding_agent.py:131",
+                        "source": "analyze_with_coding_agent.py:135",
                         "target": "analyze_with_coding_agent.py:30"
                     },
                     {
-                        "source": "analyze_with_coding_agent.py:131",
+                        "source": "analyze_with_coding_agent.py:135",
                         "target": "analyze_with_coding_agent.py:40"
                     },
                     {
-                        "source": "analyze_with_coding_agent.py:131",
+                        "source": "analyze_with_coding_agent.py:135",
                         "target": "coding_agents/repo.py:211"
                     },
                     {
@@ -295,27 +295,27 @@
                         "target": "coding_agents/repo.py:121"
                     },
                     {
-                        "source": "analyze_with_coding_agent.py:131",
+                        "source": "analyze_with_coding_agent.py:135",
                         "target": "coding_agents/repo.py:170"
                     },
                     {
-                        "source": "analyze_with_coding_agent.py:131",
+                        "source": "analyze_with_coding_agent.py:135",
                         "target": "coding_agents/prompt.py:16"
                     },
                     {
-                        "source": "analyze_with_coding_agent.py:131",
-                        "target": "analyze_with_coding_agent.py:65"
+                        "source": "analyze_with_coding_agent.py:135",
+                        "target": "analyze_with_coding_agent.py:69"
                     },
                     {
-                        "source": "analyze_with_coding_agent.py:131",
+                        "source": "analyze_with_coding_agent.py:135",
                         "target": "coding_agents/repo.py:215"
                     },
                     {
-                        "source": "analyze_with_coding_agent.py:131",
+                        "source": "analyze_with_coding_agent.py:135",
                         "target": "coding_agents/repo.py:184"
                     },
                     {
-                        "source": "analyze_with_coding_agent.py:131",
+                        "source": "analyze_with_coding_agent.py:135",
                         "target": "coding_agents/prompt.py:48"
                     }
                 ]
@@ -323,7 +323,7 @@
         },
         {
             "filePath": "generate",
-            "uniqueId": "9c3b043a-d794-43eb-b605-9ca09f474588",
+            "uniqueId": "243e1a2c-4c1c-4517-8f36-04cf8f95b4ed",
             "type": "function",
             "input": {
                 "type": "object",

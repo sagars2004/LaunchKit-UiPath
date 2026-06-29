@@ -478,7 +478,7 @@ source = { virtual = "." }
 
 [[package]]
 name = "launchkit-analyze"
-version = "0.1.0"
+version = "0.1.1"
 source = { virtual = "uipath_coded_process" }
 dependencies = [
     { name = "httpx" },

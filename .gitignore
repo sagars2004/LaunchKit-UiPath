@@ -56,3 +56,5 @@ logs/
 # Local dev artifacts
 *.zip
 tmp/
+
+.uipath/

@@ -74,7 +74,7 @@ class AnalyzeWithCodingAgentIn:
     run_id: str
     api_url: str
     api_secret: str
-    coding_tool: CodingTool = "cursor"
+    coding_tool: str = "cursor"
     repo_path: str = ""
     work_dir: str = ""
 
